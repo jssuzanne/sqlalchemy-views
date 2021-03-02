@@ -30,9 +30,9 @@ class CreateView(_CreateDropBase):
 
     __visit_name__ = "create_view"
 
-    def __init__(self, element, selectable, on=None, bind=None,
+    def __init__(self, element, selectable, bind=None,
                  or_replace=False, options=None):
-        super(CreateView, self).__init__(element, on=on, bind=bind)
+        super(CreateView, self).__init__(element, bind=bind)
         self.columns = [CreateColumn(column) for column in element.columns]
         self.selectable = selectable
         self.or_replace = or_replace
@@ -54,11 +54,14 @@ def visit_create_view(create, compiler, **kw):
         text += ', '.join(column_names)
         text += ") "
     if create.options:
-      ops = []
-      for opname, opval in create.options.items():
-        ops.append('='.join([str(opname), str(opval)]))
-      text += 'WITH (%s) ' % (', '.join(ops))
-    text += "AS %s\n\n" % compiler.sql_compiler.process(create.selectable, literal_binds=True)
+        ops = []
+        for opname, opval in create.options.items():
+            ops.append('='.join([str(opname), str(opval)]))
+
+        text += 'WITH (%s) ' % (', '.join(ops))
+
+    text += "AS %s\n\n" % compiler.sql_compiler.process(
+        create.selectable, literal_binds=True)
     return text
 
 
@@ -81,9 +84,9 @@ class DropView(_CreateDropBase):
 
     __visit_name__ = "drop_view"
 
-    def __init__(self, element, on=None, bind=None,
+    def __init__(self, element, bind=None,
                  cascade=False, if_exists=False):
-        super(DropView, self).__init__(element, on=on, bind=bind)
+        super(DropView, self).__init__(element, bind=bind)
         self.cascade = cascade
         self.if_exists = if_exists
 
